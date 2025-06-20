@@ -8,7 +8,7 @@ function App() {
 
   const handleCompare = async () => {
     console.log("Compare button clicked");
-    
+
     if (!instructionFile || !draftFile) {
       alert("Please upload both files.");
       return;
@@ -20,12 +20,24 @@ function App() {
     formData.append("draft", draftFile);
 
     try {
-      const response = await fetch("https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/compare", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/compare",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const contentType = response.headers.get("content-type");
+
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("Non-JSON response:", text);
+        throw new Error("Server returned unexpected response (not JSON).");
+      }
 
       const data = await response.json();
+      console.log("Received data:", data);
       setResults(data.results || []);
     } catch (err) {
       console.error("Error:", err);
@@ -42,14 +54,20 @@ function App() {
       <div style={{ marginBottom: "1rem" }}>
         <label>
           Upload Instruction:
-          <input type="file" onChange={(e) => setInstructionFile(e.target.files[0])} />
+          <input
+            type="file"
+            onChange={(e) => setInstructionFile(e.target.files[0])}
+          />
         </label>
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
         <label>
           Upload Draft:
-          <input type="file" onChange={(e) => setDraftFile(e.target.files[0])} />
+          <input
+            type="file"
+            onChange={(e) => setDraftFile(e.target.files[0])}
+          />
         </label>
       </div>
 
