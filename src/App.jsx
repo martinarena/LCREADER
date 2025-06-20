@@ -7,6 +7,8 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const handleCompare = async () => {
+    console.log("Compare button clicked");
+    
     if (!instructionFile || !draftFile) {
       alert("Please upload both files.");
       return;
