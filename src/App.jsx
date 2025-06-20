@@ -5,10 +5,20 @@ function App() {
   const [draftFile, setDraftFile] = useState(null);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+
+  const PASSWORD = "Frey123"; // 🔑 change this to your chosen password
+
+  const handleLogin = () => {
+    if (password === PASSWORD) {
+      setAuthenticated(true);
+    } else {
+      alert("Incorrect password.");
+    }
+  };
 
   const handleCompare = async () => {
-    console.log("Compare button clicked");
-
     if (!instructionFile || !draftFile) {
       alert("Please upload both files.");
       return;
@@ -21,50 +31,52 @@ function App() {
 
     try {
       const response = await fetch("https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/compare", {
-         method: "POST",
-         body: formData,
+        method: "POST",
+        body: formData,
       });
 
-      const contentType = response.headers.get("content-type");
-
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text();
-        console.error("Non-JSON response:", text);
-        throw new Error("Server returned unexpected response (not JSON).");
-      }
-
       const data = await response.json();
-      console.log("Received data:", data);
       setResults(data.results || []);
-    } catch (err) {
-      console.error("Error:", err);
+      console.log("Received data:", data);
+    } catch (error) {
+      console.error("Error:", error);
       alert("An error occurred while comparing documents.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (!authenticated) {
+    return (
+      <div style={{ padding: "2rem" }}>
+        <h2>🔒 Enter Password</h2>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button onClick={handleLogin} style={{ marginLeft: "0.5rem" }}>
+          Unlock
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
+    <div style={{ padding: "2rem" }}>
       <h2>LC Comparator</h2>
 
-      <div style={{ marginBottom: "1rem" }}>
+      <div>
         <label>
           Upload Instruction:
-          <input
-            type="file"
-            onChange={(e) => setInstructionFile(e.target.files[0])}
-          />
+          <input type="file" onChange={(e) => setInstructionFile(e.target.files[0])} />
         </label>
       </div>
 
-      <div style={{ marginBottom: "1rem" }}>
+      <div>
         <label>
           Upload Draft:
-          <input
-            type="file"
-            onChange={(e) => setDraftFile(e.target.files[0])}
-          />
+          <input type="file" onChange={(e) => setDraftFile(e.target.files[0])} />
         </label>
       </div>
 
@@ -73,7 +85,7 @@ function App() {
       </button>
 
       {results.length > 0 && (
-        <table border="1" cellPadding="8" style={{ marginTop: "2rem", width: "100%" }}>
+        <table border="1" cellPadding="8" style={{ marginTop: "2rem" }}>
           <thead>
             <tr>
               <th>Field</th>
@@ -85,14 +97,14 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {results.map((r, i) => (
-              <tr key={i}>
-                <td>{r.field}</td>
-                <td>{r.instruction_value}</td>
-                <td>{r.draft_value}</td>
-                <td>{r.match ? "✅" : "❌"}</td>
-                <td>{r.confidence}</td>
-                <td>{r.reason}</td>
+            {results.map((item, index) => (
+              <tr key={index}>
+                <td>{item.field}</td>
+                <td>{item.instruction_value}</td>
+                <td>{item.draft_value}</td>
+                <td style={{ textAlign: "center" }}>{item.match ? "✅" : "❌"}</td>
+                <td style={{ textAlign: "center" }}>{item.confidence}</td>
+                <td>{item.reason}</td>
               </tr>
             ))}
           </tbody>
