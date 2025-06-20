@@ -20,7 +20,7 @@ function App() {
     formData.append("draft", draftFile);
 
     try {
-      const response = await fetch("https://lc-reader-v1--martinarena.repl.co/api/compare", {
+      const response = await fetch("https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/compare", {
         method: "POST",
         body: formData,
       });
