@@ -11,6 +11,9 @@ function App() {
 
   const PASSWORD = "Frey123"; // 🔐 Change this as needed
 
+  // ✅ Replace this with your **live Replit backend URL**
+  const BACKEND_URL = "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/"; // e.g., https://abc123-xyz.replit.dev
+
   const handleLogin = () => {
     if (password === PASSWORD) {
       setAuthenticated(true);
@@ -31,13 +34,11 @@ function App() {
     formData.append("draft", draftFile);
 
     try {
-      const response = await fetch(
-        "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/compare",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/api/compare`, {
+        method: "POST",
+        body: formData,
+      });
+
       const data = await response.json();
       setResults(data.results || []);
       console.log("🔍 Received comparison:", data);
@@ -59,13 +60,11 @@ function App() {
     formData.append("instruction", instructionFile);
 
     try {
-      const response = await fetch(
-        "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/fields",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/api/fields`, {
+        method: "POST",
+        body: formData,
+      });
+
       const data = await response.json();
       setInstructionFields(data.fields || {});
       console.log("📄 Extracted fields:", data);
@@ -187,4 +186,3 @@ function App() {
 }
 
 export default App;
-
