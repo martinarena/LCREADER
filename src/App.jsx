@@ -4,11 +4,13 @@ function App() {
   const [instructionFile, setInstructionFile] = useState(null);
   const [draftFile, setDraftFile] = useState(null);
   const [results, setResults] = useState([]);
+  const [fields, setFields] = useState({});
   const [loading, setLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
 
   const PASSWORD = "Frey123"; // 🔑 change this to your chosen password
+  const API_BASE = "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev";
 
   const handleLogin = () => {
     if (password === PASSWORD) {
@@ -30,7 +32,7 @@ function App() {
     formData.append("draft", draftFile);
 
     try {
-      const response = await fetch("https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev/api/compare", {
+      const response = await fetch(`${API_BASE}/api/compare`, {
         method: "POST",
         body: formData,
       });
@@ -43,6 +45,30 @@ function App() {
       alert("An error occurred while comparing documents.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExtractFields = async () => {
+    if (!instructionFile) {
+      alert("Please upload an instruction file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("instruction", instructionFile);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/fields`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      setFields(data.fields || {});
+      console.log("📦 Extracted fields:", data.fields);
+    } catch (err) {
+      console.error("Error:", err);
+      alert("An error occurred while extracting fields.");
     }
   };
 
@@ -84,31 +110,60 @@ function App() {
         {loading ? "Comparing..." : "Compare"}
       </button>
 
+      <button onClick={handleExtractFields} style={{ marginLeft: "1rem" }}>
+        Extract PCT Fields
+      </button>
+
       {results.length > 0 && (
-        <table border="1" cellPadding="8" style={{ marginTop: "2rem" }}>
-          <thead>
-            <tr>
-              <th>Field</th>
-              <th>Instruction</th>
-              <th>Draft</th>
-              <th>Match</th>
-              <th>Confidence</th>
-              <th>Reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((item, index) => (
-              <tr key={index}>
-                <td>{item.field}</td>
-                <td>{item.instruction_value}</td>
-                <td>{item.draft_value}</td>
-                <td style={{ textAlign: "center" }}>{item.match ? "✅" : "❌"}</td>
-                <td style={{ textAlign: "center" }}>{item.confidence}</td>
-                <td>{item.reason}</td>
+        <div>
+          <h3 style={{ marginTop: "2rem" }}>Comparison Results</h3>
+          <table border="1" cellPadding="8" style={{ marginTop: "1rem", width: "100%" }}>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Instruction</th>
+                <th>Draft</th>
+                <th>Match</th>
+                <th>Confidence</th>
+                <th>Reason</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {results.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.field}</td>
+                  <td>{item.instruction_value}</td>
+                  <td>{item.draft_value}</td>
+                  <td style={{ textAlign: "center" }}>{item.match ? "✅" : "❌"}</td>
+                  <td style={{ textAlign: "center" }}>{item.confidence}</td>
+                  <td>{item.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {Object.keys(fields).length > 0 && (
+        <div>
+          <h3 style={{ marginTop: "2rem" }}>Extracted PCT Fields</h3>
+          <table border="1" cellPadding="8" style={{ marginTop: "1rem", width: "100%" }}>
+            <thead>
+              <tr>
+                <th>Field Code</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(fields).map(([code, value]) => (
+                <tr key={code}>
+                  <td>{code}</td>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
