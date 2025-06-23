@@ -4,13 +4,13 @@ function App() {
   const [instructionFile, setInstructionFile] = useState(null);
   const [draftFile, setDraftFile] = useState(null);
   const [results, setResults] = useState([]);
-  const [fields, setFields] = useState({});
+  const [fields, setFields] = useState(null);
   const [loading, setLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
 
-  const PASSWORD = "Frey123"; // 🔑 change this to your chosen password
-  const API_BASE = "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev";
+  const PASSWORD = "Frey123";
+  const BACKEND_URL = "https://77a78304-e5dc-4c57-a153-2a61642f0862-00-1mqxmta06stx0.riker.replit.dev"; // ✅ update if changed
 
   const handleLogin = () => {
     if (password === PASSWORD) {
@@ -32,14 +32,14 @@ function App() {
     formData.append("draft", draftFile);
 
     try {
-      const response = await fetch(`${API_BASE}/api/compare`, {
+      const response = await fetch(`${BACKEND_URL}/api/compare`, {
         method: "POST",
         body: formData,
       });
 
       const data = await response.json();
-      setResults(data.results || []);
       console.log("Received data:", data);
+      setResults(data.results || []);
     } catch (error) {
       console.error("Error:", error);
       alert("An error occurred while comparing documents.");
@@ -50,7 +50,7 @@ function App() {
 
   const handleExtractFields = async () => {
     if (!instructionFile) {
-      alert("Please upload an instruction file.");
+      alert("Please upload the instruction file first.");
       return;
     }
 
@@ -58,16 +58,16 @@ function App() {
     formData.append("instruction", instructionFile);
 
     try {
-      const response = await fetch(`${API_BASE}/api/fields`, {
+      const response = await fetch(`${BACKEND_URL}/api/fields`, {
         method: "POST",
         body: formData,
       });
 
       const data = await response.json();
+      console.log("🔎 Extracted fields:", data);
       setFields(data.fields || {});
-      console.log("📦 Extracted fields:", data.fields);
-    } catch (err) {
-      console.error("Error:", err);
+    } catch (error) {
+      console.error("Field extraction error:", error);
       alert("An error occurred while extracting fields.");
     }
   };
@@ -111,43 +111,13 @@ function App() {
       </button>
 
       <button onClick={handleExtractFields} style={{ marginLeft: "1rem" }}>
-        Extract PCT Fields
+        Extract Instruction Fields
       </button>
 
-      {results.length > 0 && (
-        <div>
-          <h3 style={{ marginTop: "2rem" }}>Comparison Results</h3>
-          <table border="1" cellPadding="8" style={{ marginTop: "1rem", width: "100%" }}>
-            <thead>
-              <tr>
-                <th>Field</th>
-                <th>Instruction</th>
-                <th>Draft</th>
-                <th>Match</th>
-                <th>Confidence</th>
-                <th>Reason</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.field}</td>
-                  <td>{item.instruction_value}</td>
-                  <td>{item.draft_value}</td>
-                  <td style={{ textAlign: "center" }}>{item.match ? "✅" : "❌"}</td>
-                  <td style={{ textAlign: "center" }}>{item.confidence}</td>
-                  <td>{item.reason}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {Object.keys(fields).length > 0 && (
-        <div>
-          <h3 style={{ marginTop: "2rem" }}>Extracted PCT Fields</h3>
-          <table border="1" cellPadding="8" style={{ marginTop: "1rem", width: "100%" }}>
+      {fields && (
+        <div style={{ marginTop: "2rem" }}>
+          <h4>📋 Instruction Fields</h4>
+          <table border="1" cellPadding="6">
             <thead>
               <tr>
                 <th>Field Code</th>
@@ -164,6 +134,33 @@ function App() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {results.length > 0 && (
+        <table border="1" cellPadding="8" style={{ marginTop: "2rem" }}>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Instruction</th>
+              <th>Draft</th>
+              <th>Match</th>
+              <th>Confidence</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((item, index) => (
+              <tr key={index}>
+                <td>{item.field}</td>
+                <td>{item.instruction_value}</td>
+                <td>{item.draft_value}</td>
+                <td style={{ textAlign: "center" }}>{item.match ? "✅" : "❌"}</td>
+                <td style={{ textAlign: "center" }}>{item.confidence}</td>
+                <td>{item.reason}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
